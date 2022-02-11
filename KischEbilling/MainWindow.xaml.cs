@@ -22,6 +22,7 @@ namespace KischEbilling
         public MainWindow()
         {
             InitializeComponent();
+            this.DataContext = new MainViewModel();
         }
 
     }
