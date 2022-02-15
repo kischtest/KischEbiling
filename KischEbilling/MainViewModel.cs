@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using System.Xml.Linq;
+using Telerik.Windows.Documents.Spreadsheet;
 using Telerik.Windows.Controls;
 using Telerik.Windows.Documents.Spreadsheet.FormatProviders;
 using Telerik.Windows.Documents.Spreadsheet.FormatProviders.OpenXml.Xlsx;
@@ -25,7 +26,6 @@ namespace KischEbilling
         public MainViewModel()
         {
             MyCommand = new DelegateCommand(OnCommandExecuted);
-            SubmitCommand = new DelegateCommand(OnSubmitCommandExecuted);
         }
         List<InvoiceRecord> data;
         public ICommand MyCommand { get; set; }
@@ -37,7 +37,6 @@ namespace KischEbilling
             using (var ctx = new TE_3E_PRODEntities())
             {
               data = ctx.Database.SqlQuery<InvoiceRecord>("SELECT [InvMasterID],[InvDate],[InvNumber] FROM[TE_3E_PROD].[dbo].[InvMaster] where InvNumber = 'I03-0008915'; ", new SqlParameter("@case_id", 277761)).ToList();
-
             }
                 //string fileName = @"C:\Ebiling\InvoiceListUpload.xlsx";
                 //if (!File.Exists(fileName))
@@ -97,6 +96,21 @@ namespace KischEbilling
 
                 }
             }
+
+            //DataTableFormatProvider provider = new DataTableFormatProvider();
+
+            //Workbook workbook1 = new Workbook();
+            //workbook1 workbook1 = workbook.Worksheets.Add();
+
+            //provider.Import(dataTable, workbook1);
+
+            //// Step 2: Save Workbook as Excel file
+            //IWorkbookFormatProvider formatProvider = new Telerik.Windows.Documents.Spreadsheet.FormatProviders.OpenXml.Xlsx.XlsxFormatProvider();
+
+            //using (Stream output = new FileStream(path, FileMode.Create))
+            //{
+            //    formatProvider.Export(workbook1, output);
+            //}
         }
 
         
