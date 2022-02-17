@@ -29,7 +29,6 @@ namespace KischEbilling
         private string pathToSaveExcelFile;
 
         public ICommand MyCommand { get; set; }
-        public ICommand SubmitCommand { get; set; }
 
         private void OnCommandExecuted(object obj)
         {
