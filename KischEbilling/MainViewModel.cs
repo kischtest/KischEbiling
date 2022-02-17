@@ -6,7 +6,6 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using System.Xml.Linq;
@@ -21,13 +20,16 @@ using Telerik.Windows.Documents.Utils;
 
 namespace KischEbilling
 {
-    class MainViewModel : ViewModelBase
+    partial class MainViewModel : ViewModelBase
     {
         public MainViewModel()
         {
             MyCommand = new DelegateCommand(OnCommandExecuted);
         }
-        List<InvoiceRecord> data;
+        List<InvoiceRecord> invoiceRecords;
+        private string path;
+        private DataTable dataTable;
+
         public ICommand MyCommand { get; set; }
         public ICommand SubmitCommand { get; set; }
        
@@ -36,7 +38,7 @@ namespace KischEbilling
 
             using (var ctx = new TE_3E_PRODEntities())
             {
-              data = ctx.Database.SqlQuery<InvoiceRecord>("SELECT [InvMasterID],[InvDate],[InvNumber] FROM[TE_3E_PROD].[dbo].[InvMaster] where InvNumber = 'I03-0008915'; ", new SqlParameter("@case_id", 277761)).ToList();
+              invoiceRecords = ctx.Database.SqlQuery<InvoiceRecord>("SELECT [InvMasterID],[InvDate],[InvNumber] FROM[TE_3E_PROD].[dbo].[InvMaster] where InvNumber = 'I03-0008915'; ", new SqlParameter("@case_id", 277761)).ToList();
             }
                 //string fileName = @"C:\Ebiling\InvoiceListUpload.xlsx";
                 //if (!File.Exists(fileName))
@@ -93,39 +95,26 @@ namespace KischEbilling
                 foreach (DataColumn col in table.Columns)
                 {
                     MessageBox.Show(row[col].ToString());
-
                 }
             }
 
-            //DataTableFormatProvider provider = new DataTableFormatProvider();
+            ListtoDataTable lsttodt = new ListtoDataTable();
+            DataTable dt = lsttodt.ToDataTable(invoiceRecords);
 
-            //Workbook workbook1 = new Workbook();
-            //workbook1 workbook1 = workbook.Worksheets.Add();
+            DataTableFormatProvider provider = new DataTableFormatProvider();
 
-            //provider.Import(dataTable, workbook1);
+            Workbook workbook1 = new Workbook();
+            Worksheet worksheet1 = workbook1.Worksheets.Add();
 
-            //// Step 2: Save Workbook as Excel file
-            //IWorkbookFormatProvider formatProvider = new Telerik.Windows.Documents.Spreadsheet.FormatProviders.OpenXml.Xlsx.XlsxFormatProvider();
+            provider.Import(dataTable, worksheet1);
 
-            //using (Stream output = new FileStream(path, FileMode.Create))
-            //{
-            //    formatProvider.Export(workbook1, output);
-            //}
+            // Step 2: Save Workbook as Excel file
+            IWorkbookFormatProvider formatProvider1 = new Telerik.Windows.Documents.Spreadsheet.FormatProviders.OpenXml.Xlsx.XlsxFormatProvider();
+
+            using (Stream output = new FileStream(path, FileMode.Create))
+            {
+                formatProvider.Export(workbook1, output);
+            }
         }
-
-        
-        private void OnCreateANewDocCommandExecuted(object obj)
-        {
-            //var patentTransactionBody = new LxSerializer<PatentTransactionElm>();
-
-        }
-
-        //public void MyDeserializerErrorHandler(string msg, LxErrorSeverity severity, LxErrorCode errorCode, TextLocation location, object targetObject)
-        //{
-        //    if (severity == LxErrorSeverity.Error)
-        //        Console.WriteLine(msg);
-        //    else if (severity == LxErrorSeverity.Warning)
-        //        Console.WriteLine(msg);
-        //}
     }
 }
