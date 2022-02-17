@@ -26,37 +26,24 @@ namespace KischEbilling
         {
             MyCommand = new DelegateCommand(OnCommandExecuted);
         }
-        List<InvoiceRecord> invoiceRecords;
-        private string path;
-        private DataTable dataTable;
+        private string pathToSaveExcelFile;
 
         public ICommand MyCommand { get; set; }
         public ICommand SubmitCommand { get; set; }
-       
+
         private void OnCommandExecuted(object obj)
         {
+            List<InvoiceRecord> invoiceRecords = GetInvoiceRecords();
+            DataTable listOfInvoiceNumbersToSearch = GetDataFromExcelAsDt(@"C:\Ebiling\InvoiceListUpload.xlsx");
+            ListtoDataTable lsttodt = new ListtoDataTable();
+            DataTable invoiceLineItem = lsttodt.ToDataTable(invoiceRecords);
+            ExportWorkBookToExcel(invoiceLineItem);
+        }
 
-            using (var ctx = new TE_3E_PRODEntities())
-            {
-              invoiceRecords = ctx.Database.SqlQuery<InvoiceRecord>("SELECT [InvMasterID],[InvDate],[InvNumber] FROM[TE_3E_PROD].[dbo].[InvMaster] where InvNumber = 'I03-0008915'; ", new SqlParameter("@case_id", 277761)).ToList();
-            }
-                //string fileName = @"C:\Ebiling\InvoiceListUpload.xlsx";
-                //if (!File.Exists(fileName))
-                //{
-                //    throw new FileNotFoundException(String.Format("File {0} was not found!", fileName));
-                //}
-
-                //Telerik.Windows.Documents.Spreadsheet.Model.Workbook workbook;
-                //IWorkbookFormatProvider formatProvider = new Telerik.Windows.Documents.Spreadsheet.FormatProviders.OpenXml.Xlsx.XlsxFormatProvider();
-
-                //using (Stream input = new FileStream(fileName, FileMode.Open))
-                //{
-                //    workbook = formatProvider.Import(input);
-                //}
-
-
-                XlsxFormatProvider formatProvider = new XlsxFormatProvider();
-            Workbook workbook = formatProvider.Import(File.ReadAllBytes(@"C:\Ebiling\InvoiceListUpload.xlsx"));
+        public DataTable GetDataFromExcelAsDt(string filePath)
+        {
+            XlsxFormatProvider formatProvider = new XlsxFormatProvider();
+            Workbook workbook = formatProvider.Import(File.ReadAllBytes(filePath));
 
             var worksheet = workbook.Sheets[0] as Worksheet;
             var table = new DataTable();
@@ -87,34 +74,49 @@ namespace KischEbilling
                     values[j] = result;
                 }
                 table.Rows.Add(values);
-
             }
-             
-            foreach(DataRow row in table.Rows)
+
+            foreach (DataRow row in table.Rows)
             {
                 foreach (DataColumn col in table.Columns)
                 {
-                    MessageBox.Show(row[col].ToString());
+                    //MessageBox.Show(row[col].ToString());
                 }
             }
 
-            ListtoDataTable lsttodt = new ListtoDataTable();
-            DataTable dt = lsttodt.ToDataTable(invoiceRecords);
+            return table;
+        }
 
+        public void ExportWorkBookToExcel(DataTable invoiceLineItem)
+        {
             DataTableFormatProvider provider = new DataTableFormatProvider();
 
             Workbook workbook1 = new Workbook();
-            Worksheet worksheet1 = workbook1.Worksheets.Add();
+            Worksheet invoiceWorkSheet = workbook1.Worksheets.Add();
 
-            provider.Import(dataTable, worksheet1);
+            provider.Import(invoiceLineItem, invoiceWorkSheet);
 
             // Step 2: Save Workbook as Excel file
             IWorkbookFormatProvider formatProvider1 = new Telerik.Windows.Documents.Spreadsheet.FormatProviders.OpenXml.Xlsx.XlsxFormatProvider();
+            pathToSaveExcelFile = @"C:\Ebiling\GeneratedExcel\EbillingGeneratedExcel" + DateTime.Now.ToString("yyyyMMddHHmmss");
 
-            using (Stream output = new FileStream(path, FileMode.Create))
+            using (Stream output = new FileStream(pathToSaveExcelFile, FileMode.Create))
             {
+                XlsxFormatProvider formatProvider = new XlsxFormatProvider();
                 formatProvider.Export(workbook1, output);
+                MessageBox.Show("Excel Sheet Generated");
             }
+        }
+
+        public List<InvoiceRecord> GetInvoiceRecords()
+        {
+            List<InvoiceRecord> invoiceRecords = null;
+            using (var ctx = new TE_3E_PRODEntities())
+            {
+                invoiceRecords = ctx.Database.SqlQuery<InvoiceRecord>("SELECT [InvMasterID],[InvDate],[InvNumber] FROM[TE_3E_PROD].[dbo].[InvMaster] where InvNumber = 'I03-0008915'; ", new SqlParameter("@case_id", 277761)).ToList();
+            }
+
+            return invoiceRecords;
         }
     }
 }

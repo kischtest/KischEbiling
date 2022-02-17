@@ -3357,6 +3357,7 @@
     <Compile Include="LinkInvAttachmentsEvent.cs">
       <DependentUpon>Elite.tt</DependentUpon>
     </Compile>
+    <Compile Include="ListtoDataTable.cs" />
     <Compile Include="LogArchiveInfo.cs">
       <DependentUpon>Elite.tt</DependentUpon>
     </Compile>
