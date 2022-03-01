@@ -32,11 +32,16 @@ namespace KischEbilling
 
         private void OnCommandExecuted(object obj)
         {
-            List<InvoiceRecord> invoiceRecords = GetInvoiceRecords();
             DataTable listOfInvoiceNumbersToSearch = GetDataFromExcelAsDt(@"C:\Ebiling\InvoiceListUpload.xlsx");
-            ListtoDataTable lsttodt = new ListtoDataTable();
-            DataTable invoiceLineItem = lsttodt.ToDataTable(invoiceRecords);
-            ExportWorkBookToExcel(invoiceLineItem);
+            ListtoDataTable listToDataTable = new ListtoDataTable();
+            DataTable invoiceLineItemsDt = new DataTable();
+            invoiceLineItemsDt.Columns.Add("Inv_Date");
+            invoiceLineItemsDt.Columns.Add("Inv_Num");
+            invoiceLineItemsDt.Rows.Add(new object[] { listToDataTable.ToDataTable(GetInvoiceRecords()) });
+            invoiceLineItemsDt.Rows.Add(listToDataTable.ToDataTable(GetInvoiceRecords()));
+            //invoiceLineItemsDt = listToDataTable.ToDataTable(GetInvoiceRecords());
+
+            ExportWorkBookToExcel(invoiceLineItemsDt);
         }
 
         public DataTable GetDataFromExcelAsDt(string filePath)
@@ -103,7 +108,7 @@ namespace KischEbilling
             {
                 XlsxFormatProvider formatProvider = new XlsxFormatProvider();
                 formatProvider.Export(workbook1, output);
-                MessageBox.Show("Excel Sheet Generated");
+                MessageBox.Show("Excel Sheet Generated","Sheet Generated");
             }
         }
 
@@ -113,6 +118,7 @@ namespace KischEbilling
             using (var ctx = new TE_3E_PRODEntities())
             {
                 invoiceRecords = ctx.Database.SqlQuery<InvoiceRecord>("SELECT [InvMasterID],[InvDate],[InvNumber] FROM[TE_3E_PROD].[dbo].[InvMaster] where InvNumber = 'I03-0008915'; ", new SqlParameter("@case_id", 277761)).ToList();
+
             }
 
             return invoiceRecords;
